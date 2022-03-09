@@ -1,1 +1,1 @@
-web: gunicorn myInventoryProject.wsgi
+web: gunicorn InventoryRestApp.wsgi
