@@ -3,8 +3,12 @@ from django.shortcuts import render
 
 # Create your views here.
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.generics import ListCreateAPIView, ListAPIView, CreateAPIView
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.filters import SearchFilter
+from rest_framework.generics import ListCreateAPIView, ListAPIView, CreateAPIView, UpdateAPIView
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from auth_app.models import User
 from auth_app.serializers import CustomerSearchSerializer
@@ -26,7 +30,8 @@ from inventory_app.models import PurchaseOrder, ProductDetailsInit, SalesOrder, 
 #         serializer.save(product_init=prodValid)
 #
 #
-from inventory_app.serializers import PurchaseOrderManySerializer
+from inventory_app.serializers import PurchaseOrderManySerializer, ProductDetailsInitSerializerM, SalesOrderSerializer, \
+    SalesReturnSerializer
 from staff_app.models import Supplier
 
 
@@ -47,13 +52,12 @@ class PurchaseOrderView(CreateAPIView):
                 admin=request.user,
                 supplier=serializer.validated_data['supplier'],
             )
-            print("id is: ",serializer.validated_data['supplier'])
             supplier = Supplier.objects.get(id=serializer.validated_data['supplier'].id)
             supplier.due = serializer.validated_data['Running_due']
             supplier.save()
             for purchase in serializer.validated_data['purchases']:
                 product_init = purchase['product_init']
-                pro_init = ProductDetailsInit.objects.create(user=request.user, **product_init)
+                pro_init = ProductDetailsInit.objects.create(admin=request.user, **product_init)
                 PurchaseOrder.objects.create(purchase_group=group_product, product_init=pro_init,
                                              company=purchase['company'],
                                              category=purchase['category'],
@@ -82,6 +86,7 @@ class PurchaseOrderView(CreateAPIView):
     #     )
     #     serializer.save(product_init=prodValid)
 
+
 #
 # class SalesOrderView(ListCreateAPIView):
 #     serializer_class = SalesOrderSerializer
@@ -98,3 +103,45 @@ class PurchaseOrderView(CreateAPIView):
 #
 #     filter_backends = [DjangoFilterBackend]
 #     filterset_fields = ['phone_number', 'present_address', 'shop_name']
+
+class SearchProductView(ListAPIView):
+    serializer_class = ProductDetailsInitSerializerM
+
+    def get_queryset(self):
+        user = User.objects.get(id=self.request.user.id)
+        if user.sr:
+            return ProductDetailsInit.objects.select_related("product").prefetch_related(
+                "get_product_purchase_order").filter(sr_visit_user=user, sr_visit_return=False).all()
+        elif user.admin:
+            return ProductDetailsInit.objects.select_related("product").prefetch_related(
+                "get_product_purchase_order").filter(admin=user).all()
+        else:
+            return ProductDetailsInit.objects.select_related("product").prefetch_related(
+                "get_product_purchase_order").filter(admin=user.admin_user).all()
+
+    filter_backends = [SearchFilter]
+    filterset_fields = ['barcode', 'product__name']
+
+
+class SalesOrderView(ListCreateAPIView):
+    serializer_class = SalesOrderSerializer
+    queryset = SalesOrder.objects.all()
+
+
+@api_view(['POST'])
+def sr_visit_view(request, product_detail_id=None):
+    sr = request.data.get("sr_user")
+    if product_detail_id is not None:
+        product = ProductDetailsInit.objects.get(id=product_detail_id)
+        product.sr_visit_user_id = sr
+        product.save()
+        return Response(status=status.HTTP_200_OK)
+
+
+# class SRVisitView(UpdateAPIView):
+#     serializer_class =
+#     def post(self, request, product_detail_id=None):
+#
+class SalesReturnView(CreateAPIView):
+    serializer_class = SalesReturnSerializer
+    queryset = None

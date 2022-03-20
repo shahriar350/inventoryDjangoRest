@@ -45,7 +45,7 @@ class SupplierSerializer(serializers.ModelSerializer):
             'email',
             'image',
             'address',
-            'previous_due',
+            'due',
             'admin',
             'get_supplier_banks',
         )

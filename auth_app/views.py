@@ -79,7 +79,7 @@ class CustomerGetSearch(ListAPIView):
 
     def get_queryset(self):
         user = User.objects.get(id=self.request.user.id)
-        return User.objects.prefetch_related("get_user_details").filter(customer=True, admin_user=user.admin_created)
+        return User.objects.prefetch_related("get_user_details").filter(customer=True, created_by=user.created_by)
 
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['phone_number', 'present_address', 'shop_name']

@@ -174,7 +174,6 @@ class UserDetails(models.Model):
     reference_by = models.CharField(max_length=255, null=True, blank=True)
     owner_name = models.CharField(max_length=255, null=True, blank=True)
 
-
 class UserBank(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="get_user_banks_details")
     bank_name = models.CharField(max_length=255, null=True, blank=True)

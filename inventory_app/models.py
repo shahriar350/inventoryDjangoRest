@@ -12,9 +12,9 @@ User = get_user_model()
 
 
 class ProductDetailsInit(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="get_admin_purchase_orders")
+    admin = models.ForeignKey(User, on_delete=models.CASCADE, related_name="get_admin_purchase_orders")
     code = models.CharField(max_length=255, null=True, blank=True)
-    barcode = models.CharField(max_length=255, null=True, blank=True)
+    barcode = models.CharField(max_length=255, null=True, blank=True,unique=True)
     product = models.ForeignKey(ProductInit, on_delete=models.CASCADE, related_name="get_product_purchase_orders")
     sr_visit_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="get_sr_products",
                                       limit_choices_to={'sr': True})  # sr visit

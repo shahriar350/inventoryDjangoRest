@@ -92,3 +92,8 @@ class ProductInit(models.Model):
 
     def __str__(self):
         return self.name
+
+class RouteUser(models.Model):
+    user = models.ForeignKey(User,on_delete=models.CASCADE,related_name="get_user_root")
+    route = models.ForeignKey(Route,on_delete=models.CASCADE,related_name="get_route_user")
+    admin = models.ForeignKey(User,on_delete=models.CASCADE,related_name="get_admin_in_route")

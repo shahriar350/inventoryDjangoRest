@@ -1,7 +1,9 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from auth_app.models import User
 from basic_module_app.models import ProductInit
+from basic_module_app.serializers import ProductInitSerializer
 from inventory_app.models import CompanyReturn, SalesReturn, SalesOrder, ProductDetailsInit, PurchaseOrder
 
 #
@@ -121,3 +123,35 @@ class PurchaseOrderManySerializer(serializers.Serializer):
     pay_amount = serializers.DecimalField(decimal_places=2, max_digits=10, allow_null=True)
     Running_due = serializers.DecimalField(decimal_places=2, max_digits=10, allow_null=True)
     supplier = serializers.PrimaryKeyRelatedField(queryset=Supplier.objects.all())
+
+
+class ProductDetailsInitSerializerM(serializers.ModelSerializer):
+    get_product_purchase_order = PurchaseOrderSerializer()
+    product = ProductInitSerializer()
+
+    class Meta:
+        model = ProductDetailsInit
+        fields = (
+            'admin',
+            'code',
+            'barcode',
+            'product',
+            'sr_visit_user',
+            'sr_visit_return',
+            'get_product_purchase_order',
+        )
+
+
+class SalesOrderSerializer(serializers.ModelSerializer):
+    product_init = serializers.PrimaryKeyRelatedField(queryset=ProductDetailsInit.objects.all())
+    customer = serializers.PrimaryKeyRelatedField(queryset=User.objects.filter(customer=True))
+
+    class Meta:
+        model = SalesOrder
+        fields = "__all__"
+
+
+class SalesReturnSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SalesReturn
+        fields = "__all__"

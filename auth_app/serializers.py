@@ -105,7 +105,7 @@ class CustomerSearchSerializer(serializers.ModelSerializer):
             "name",
             "phone_number",
             "customer",
-            "admin_created",
+            "created_by",
             "permanent_address",
             "present_address",
             "shop_name",
